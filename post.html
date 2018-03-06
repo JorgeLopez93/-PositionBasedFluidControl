@@ -36,16 +36,7 @@
         <div class="collapse navbar-collapse" id="navbarResponsive">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <a class="nav-link" href="index.html">Home</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="about.html">About</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="post.html">Sample Post</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="contact.html">Contact</a>
+              <a class="nav-link" href="index.html">Inicio</a>
             </li>
           </ul>
         </div>
@@ -53,17 +44,17 @@
     </nav>
 
     <!-- Page Header -->
-    <header class="masthead" style="background-image: url('img/post-bg.jpg')">
+    <header class="masthead" style="background-image: url('img/post-bg.png')">
       <div class="overlay"></div>
       <div class="container">
         <div class="row">
           <div class="col-lg-8 col-md-10 mx-auto">
             <div class="post-heading">
-              <h1>Man must explore, and this is exploration at its greatest</h1>
-              <h2 class="subheading">Problems look mighty small from 150 miles up</h2>
-              <span class="meta">Posted by
-                <a href="#">Start Bootstrap</a>
-                on August 24, 2018</span>
+              <h1>Computación Gráficos: Presentación final</h1>
+              <h2 class="subheading">Replicaión del artículo: Position-Based Fluid Contro</h2>
+              <span class="meta">Posteado por
+                <a href="#">Jorge López</a>
+                el 5 de Marzo, 2018</span>
             </div>
           </div>
         </div>
@@ -75,42 +66,107 @@
       <div class="container">
         <div class="row">
           <div class="col-lg-8 col-md-10 mx-auto">
-            <p>Never in all their history have men been able truly to conceive of the world as one: a single sphere, a globe, having the qualities of a globe, a round earth in which all the directions eventually meet, in which there is no center because every point, or none, is center — an equal earth which all men occupy as equals. The airman's earth, if free men make it, will be truly round: a globe in practice, not in theory.</p>
+            <br>
+            <iframe src="https://www.youtube.com/embed/hX3bmVsFx_A" width="500" height="281" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+            <p><a href="https://youtu.be/hX3bmVsFx_A">Demo Final</a> en <a href="https://www.youtube.com">YouTube</a>.</p>
+            <br>
+            <h2 class="section-heading">Resumen</h2>
 
-            <p>Science cuts two ways, of course; its products can be used for both good and evil. But there's no turning back from science. The early warnings about technological dangers also come from science.</p>
+            <p align="justify">
+              En el presente proyecto se trabaja sobre el estudio y replicación del artículo: Position-Based Fluid Control. El artículo propone un método para modelar
+              y renderizar objetos en 3d con la forma de líquidos. Se logra mediante el uso de las partículas de control representados por un volumen en
+              forma de esfera. para obtener las partículas de control se voxceliza a la maya representado cada voxel. Estas partículas tienen tres propiedades que afectan al modelo del
+              fluido. Unas de las propiedades es la densidad constante de la partícula de control que da la forma al objeto. la siguiente propiedad es la elasticidad que permite atraer
+              al líquido hacia el interior de la partícula de control cuando este sale de su volumen de control.  la segunda propiedad es la velocidad, el fluido dentro del volumen del
+              control experimentan un velocidad reducida si la partícula de control se mueve para poder compensar el movimiento en caso de que sea brusco. Se replico del artículo el método
+              propuesto de voxcelizacion, el control del fluido mediante las partículas de control y el renderizado del fluido.
+            </p>
 
-            <p>What was most significant about the lunar voyage was not that man set foot on the Moon but that they set eye on the earth.</p>
+            <h2 class="section-heading">voxcelización</h2>
 
-            <p>A Chinese tale tells of some men sent to harm a young girl who, upon seeing her beauty, become her protectors rather than her violators. That's how I felt seeing the Earth for the first time. I could not help but love and cherish her.</p>
+            <p align="justify">
+               El artículo propone un algoritmo de voxelización. Este modifica el método antiguo que se hace mediante voxel antiguamente transformando la malla de triángulo en un donde
+               los triángulos tienen lados menores al la longitud de los voxel que se desean. Luego escogemos la posición de los nuevos voxel en base a los nodos de la nueva malla y si
+               varios coinciden en un mismo, se usa la posición promedio. para finalizar se rellena el modelo. El método de relleno que se utilizó en el proyecto es el algoritmo de flood
+               fill. en este caso se modificó el algoritmo para rellenar un objeto en 3d rellenando como si fuera una imagen por cada sección del modelo como una matriz 2d limitamos el
+               borde esta matriz y llenamos lo que serán espacios vacíos, es decir que  se empieza con un modelo totalmente relleno y se limpia lo que no es voxel del que sí. Rellenamos
+               tomado par de ejes como ejemplo primero xy, luego xz y final yz para garantizar un buen relleno y no limitar la capacidad computacional  .El objetivo de esto es de obtener
+               un objeto sólido rellenado sin espacios en blancos y no tener problema de figuras que que tenga espacios que no se comuneunque entres si (se aprecia en el ejemplo del dragón
+               que partes de la cola y cabeza no se conectan más por la superficie con el cuerpo).
+             </p>
 
-            <p>For those who have seen the Earth from space, and for the hundreds and perhaps thousands more who will, the experience most certainly changes your perspective. The things that we share in our world are far more valuable than those which divide us.</p>
+             <img class="img-fluid" src="img/dragonVoxel.png" alt="">
 
-            <h2 class="section-heading">The Final Frontier</h2>
+             <p align="justify">
+               En la siguiente imagen se observa una comparación de los algoritmos de voxcelización siendo el de la derecha el propuesto por el artículo.
+             </p>
 
-            <p>There can be no thought of finishing for ‘aiming for the stars.’ Both figuratively and literally, it is a task to occupy the generations. And no matter how much progress one makes, there is always the thrill of just beginning.</p>
+             <img class="img-fluid" src="img/tea.png" alt="">
 
-            <p>There can be no thought of finishing for ‘aiming for the stars.’ Both figuratively and literally, it is a task to occupy the generations. And no matter how much progress one makes, there is always the thrill of just beginning.</p>
+            <h2 class="section-heading">Position Based Fluids</h2>
 
-            <blockquote class="blockquote">The dreams of yesterday are the hopes of today and the reality of tomorrow. Science has not yet mastered prophecy. We predict too much for the next year and yet far too little for the next ten.</blockquote>
 
-            <p>Spaceflights cannot be stopped. This is not the work of any one man or even a group of men. It is a historical process which mankind is carrying out in accordance with the natural laws of human development.</p>
+            <p align="justify">
+              El artículo trabaja con un publicación para modelar el líquido llamado Position Based Fluids. este artículo propone una manera ligera de modelar el líquido. este represente
+              mediante partículas con propiedades como densidad constante, viscosidad, etc. Para el caso del proyecto se utilizó parte del código de este
+              <a href="https://github.com/JAGJ10/PositionBasedFluids">proyecto</a>
+              que utiliza esta publicaión
+              . Es desarrollado en lenguaje c++ con paralización en cuda.
+            </p>
 
-            <h2 class="section-heading">Reaching for the Stars</h2>
+            <img class="img-fluid" src="img/liqui.png" alt="">
 
-            <p>As we got further and further away, it [the Earth] diminished in size. Finally it shrank to the size of a marble, the most beautiful you can imagine. That beautiful, warm, living object looked so fragile, so delicate, that if you touched it with a finger it would crumble and fall apart. Seeing this has to change a man.</p>
+            <h2 class="section-heading">Funcionamiento de las partículas de control</h2>
 
-            <a href="#">
-              <img class="img-fluid" src="img/post-sample-image.jpg" alt="">
-            </a>
-            <span class="caption text-muted">To go places and do things that have never been done before – that’s what living is all about.</span>
+            <p align="justify">
+              Se mostrarlos las otras funcionalidades del artículo para dar la forma del objeto como de un líquido. Los voxel mostrados en el primer párrafo son en realidad las partículas de
+              control que su objetivo es alterar la física del fluido (que son representados por partículas de líquido) para atraer y servir como pequeños volúmenes de control. Estos se logran
+              a través de tres fuerzas (que son representados en el artículo como variación de de la posición de la partícula del líquido). La primera es para controlar la densidad de la partícula
+              de control. El segundo es para  simular el efecto de atracción como un resorte en caso de movimiento o compensar la anterior fuerza y el último para caso de que la partícula de control
+              se mueva, compensar ese movimiento y no deformar demasiado al modelo. Todo fue implementado como se muestra en video pero solo falta dar la apariencia de un líquido.
+            </p>
 
-            <p>Space, the final frontier. These are the voyages of the Starship Enterprise. Its five-year mission: to explore strange new worlds, to seek out new life and new civilizations, to boldly go where no man has gone before.</p>
+            <img class="img-fluid" src="img/liqui2.png" alt="">
 
-            <p>As I stand out here in the wonders of the unknown at Hadley, I sort of realize there’s a fundamental truth to our nature, Man must explore, and this is exploration at its greatest.</p>
+            <p align="justify">
+              Como ejemplo de partícula de control se muestra en la siguiente imagen el área que representa y cómo atrae a las partículas del líquido para obtener una densidad constante.
+            </p>
 
-            <p>Placeholder text by
-              <a href="http://spaceipsum.com/">Space Ipsum</a>. Photographs by
-              <a href="https://www.flickr.com/photos/nasacommons/">NASA on The Commons</a>.</p>
+            <img class="img-fluid" src="img/densi.png" alt="">
+
+            <p align="justify">
+              De igual forma se muestra el funcionamiento de la elasticidad que actúa  cuando las partículas se alejan del volumen de control.
+            </p>
+
+            <img class="img-fluid" src="img/eles.png" alt="">
+
+            <p align="justify">
+              Las imágenes son del artículo <a href="https://dl.acm.org/citation.cfm?id=2699287"> Position-based fluid control</a> <br>.
+            </p>
+
+            <h2 class="section-heading">Renderización con ray casting</h2>
+
+            <p align="justify">
+              Método de renderizado de objetos representado por mapa de voxeles. consiste en trazar rectas desde el posición de la cámara hacia el mapa de voxeles que esta contenida en un
+              paralelípedo. esta recta debe de atravesarlo y dependiendo de lo que se desea se realiza el efecto. en el caso del proyecto se combinan dos métodos, el Ray Casting  con un
+              Isosurface Ray Casting. el primero es para poder obtener el brillo del objeto y el segundo para representar la tralucidad del líquido. Ray Casting consiste en dar el color al
+              objeto mediante la acumulacion de particulas o densidad (como se le conoce al valor que toma el voxel) atravesadas por la recta de visión, en cambio el Isosurface Ray Casting
+              solo busca el primer voxel y calcula su normal en base a su vecindad. para la iluminación se utilizó el modelo Phong.
+            </p>
+
+            <p align="justify">
+              Fue implementado utilizando OpenGL y sheider con ayuda del repositorio
+              <a href="https://github.com/PacktPublishing/OpenGL-Build-High-Performance-Graphics">OpenGL-Build-High-Performance-Graphics</a>.
+              Además que se utilizó un textura 3D dinámica. La textura fue modificado por cuda al final de los cálculos de las posiciones
+              partículas del fluido.
+            </p>
+
+            <img class="img-fluid" src="img/post-bg.png" alt="">
+            <h3 class="section-heading">Artículos</h3>
+            <p>
+              <a href="https://dl.acm.org/citation.cfm?id=2699287"> Position-based fluid control</a> <br>
+              <a href="http://mmacklin.com/pbf_sig_preprint.pdf"> Position Based Fluids</a>.
+            </p>
           </div>
         </div>
       </div>
@@ -124,24 +180,9 @@
         <div class="row">
           <div class="col-lg-8 col-md-10 mx-auto">
             <ul class="list-inline text-center">
+
               <li class="list-inline-item">
-                <a href="#">
-                  <span class="fa-stack fa-lg">
-                    <i class="fa fa-circle fa-stack-2x"></i>
-                    <i class="fa fa-twitter fa-stack-1x fa-inverse"></i>
-                  </span>
-                </a>
-              </li>
-              <li class="list-inline-item">
-                <a href="#">
-                  <span class="fa-stack fa-lg">
-                    <i class="fa fa-circle fa-stack-2x"></i>
-                    <i class="fa fa-facebook fa-stack-1x fa-inverse"></i>
-                  </span>
-                </a>
-              </li>
-              <li class="list-inline-item">
-                <a href="#">
+                <a href="https://github.com/JorgeLopez93/-PositionBasedFluidControl">
                   <span class="fa-stack fa-lg">
                     <i class="fa fa-circle fa-stack-2x"></i>
                     <i class="fa fa-github fa-stack-1x fa-inverse"></i>
