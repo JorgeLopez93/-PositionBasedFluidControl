@@ -80,6 +80,7 @@ __device__ float3 WSpikyControl(float3 const &pi, float3 const &pj) {
 	return r * -coeff;
 }
 
+//Returns the eta vector that points in the direction of the corrective force
 __device__ float3 eta(float4* newPos, int* neighbors, int* numNeighbors, int &index, float &vorticityMag) {
 	float3 eta = make_float3(0.0f);
 	for (int i = 0; i < numNeighbors[index]; i++) {
@@ -90,7 +91,7 @@ __device__ float3 eta(float4* newPos, int* neighbors, int* numNeighbors, int &in
 }
 
 __device__ float3 vorticityForce(float4* newPos, float3* velocities, int* neighbors, int* numNeighbors, int index) {
-
+	//Calculate omega_i
 	float3 omega = make_float3(0.0f);
 	float3 velocityDiff;
 	float3 gradient;
@@ -103,13 +104,13 @@ __device__ float3 vorticityForce(float4* newPos, float3* velocities, int* neighb
 
 	float omegaLength = length(omega);
 	if (omegaLength == 0.0f) {
-
+		//No direction for eta
 		return make_float3(0.0f);
 	}
 
 	float3 etaVal = eta(newPos, neighbors, numNeighbors, index, omegaLength);
 	if (etaVal.x == 0 && etaVal.y == 0 && etaVal.z == 0) {
-
+		//Particle is isolated or net force is 0
 		return make_float3(0.0f);
 	}
 
@@ -119,7 +120,7 @@ __device__ float3 vorticityForce(float4* newPos, float3* velocities, int* neighb
 }
 
 __device__ float sCorrCalc(float4 &pi, float4 &pj) {
-
+	//Get Density from WPoly6
 	float corr = WPoly6(make_float3(pi), make_float3(pj)) / sp.wQH;
 	corr *= corr * corr * corr;
 	return -sp.K * corr;
@@ -174,8 +175,10 @@ __global__ void predictPositions(float4* newPos, float3* velocities) {
 	int index = threadIdx.x + (blockIdx.x * blockDim.x);
 	if (index >= sp.numParticles) return;
 
+	//update velocity vi = vi + dt * fExt
 	velocities[index] +=  sp.gravity * deltaT;
 
+	//predict position x* = xi + dt * vi
 	newPos[index] += make_float4(velocities[index] * deltaT, 0);
 
 	confineToBox(newPos[index], velocities[index]);
@@ -186,7 +189,7 @@ __global__ void predictPositionsControl (float4* newPosControl, float3* velocity
 	if (index >= sp.numParticlesControl) return;
 	velocityControl[index] = v;
 	newPosControl[index] += make_float4(v * deltaT, 0);
-
+	//printf("%d - ", index);
 }
 
 __global__ void clearNeighbors(int* numNeighbors, int* numContacts) {
@@ -318,7 +321,7 @@ __global__ void updateNearestControl(float4* newPos, float4* newPosControl, int*
 					int gIndex = getGridIndex(n);
 					int cellParticles = min(gridCountersControl[gIndex], sp.maxParticles - 1);
 					for (int i = 0; i < cellParticles; i++) {
-
+						//if (numNeighborsControl[index] >= sp.maxNeighborsControl) return;
 						pIndex = gridCellsControl[gIndex * sp.maxParticlesControl + i];
 						r = length(make_float3(newPosControl[pIndex]) - make_float3(newPos[index]));
 						if (r < r_m) {
@@ -362,7 +365,7 @@ __global__ void calcDensitiesControl(float4* newPos, float4* newPosControl, int*
 		atomicAdd(&buffer1[nIndex].y, rho * velocityControl[index].y);
 		atomicAdd(&buffer1[nIndex].z, rho * velocityControl[index].z);
 	}
-
+	//printf("%f , ", rhoSum);
 	densitiesControl[index] = rhoSum;
 }
 
@@ -375,14 +378,17 @@ __global__ void calcLambda(float4* newPos, int* neighbors, int* numNeighbors, fl
 	float sumGradients = 0.0f;
 	for (int i = 0; i < numNeighbors[index]; i++) {
 
-
+		//Calculate gradient with respect to j
 		float3 gradientJ = WSpiky(make_float3(newPos[index]), make_float3(newPos[neighbors[(index * sp.maxNeighbors) + i]])) / sp.restDensity;
 
+		//Add magnitude squared to sum
+		//sumGradients += pow(length(gradientJ), 2);
 		sumGradients += pow(gradientJ.x, 2) + pow(gradientJ.y, 2) + pow(gradientJ.z, 2);
 		gradientI += gradientJ;
 
 	}
-
+	//Add the particle i gradient magnitude squared to sum
+	//sumGradients += pow(length(gradientI), 2);
 	sumGradients += pow(gradientI.x, 2) + pow(gradientI.y, 2) + pow(gradientI.z, 2);
 	buffer0[index] = (-1 * densityConstraint) / (sumGradients + sp.lambdaEps);
 }
@@ -393,17 +399,18 @@ __global__ void calcLambdaControl(float4* newPos, float4* newPosControl, int* ne
 	int index = threadIdx.x + (blockIdx.x * blockDim.x);
 	if (index >= sp.numParticlesControl ) return;
 	float densityConstraint = (densitiesControl[index] / sp.restDensityControl) - 1;
-);
+	//float3 gradientI = make_float3(0.0f);
 	float sumGradients = 0.0f;
 	for (int i = 0; i < numNeighborsControl[index]; i++) {
-
+		//Calculate gradient with respect to j
 		float3 gradientJ = WSpikyControl(make_float3(newPosControl[index]), make_float3(newPos[neighborsControl[(index * sp.maxNeighborsControl) + i]])) / sp.restDensityControl;
-
+		//Add magnitude squared to sum
+		//sumGradients += pow(length(gradientJ), 2);
 		sumGradients += pow(gradientJ.x, 2) + pow(gradientJ.y, 2) + pow(gradientJ.z, 2);
 
 	}
 	buffer0[index] = (-1 * densityConstraint) / (sumGradients + sp.lambdaEpsControl);
-
+	//printf("%f , ", buffer0[index]);
 }
 
 __global__ void updateReferences(float4* newPos, float4* newPosControl, int* nearestControl, int* referenceControl,
@@ -456,11 +463,13 @@ __global__ void calcDeltaPDensity(float4* newPos, float4* newPosControl, int* ne
 	float3 deltaP;
 	int nIndex;
 
+	//printf("%d , ", numNeighborsControl[index]);
 	for (int i = 0; i < numNeighborsControl[index]; i++) {
 		nIndex = neighborsControl[(index * sp.maxNeighborsControl) + i];
 		deltaP = WSpikyControl(make_float3(newPosControl[index]), make_float3(newPos[nIndex])) ; //* (lambda);
 		deltaP *= lambda;
-
+		//float a = length(deltaP);
+		//if(a > 0.01) printf("%f , ", a);
 		atomicAdd(&deltaPs[nIndex].x, deltaP.x);
 		atomicAdd(&deltaPs[nIndex].y, deltaP.y);
 		atomicAdd(&deltaPs[nIndex].z, deltaP.z);
@@ -472,21 +481,25 @@ __global__ void applyDeltaP(float4* newPos, float3* deltaPs) {
 	if (index >= sp.numParticles) return;
 
 	newPos[index] += make_float4(deltaPs[index], 0);
-
+	//newPos[index] += make_float4(deltaPs[index], 0);
 }
 
 __global__ void updateVelocities(float4* oldPos, float4* newPos, float3* velocities, int* neighbors, int* numNeighbors, float3* deltaPs) {
 	int index = threadIdx.x + (blockIdx.x * blockDim.x);
 	if (index >= sp.numParticles) return;
 
+	//confineToBox(newPos[index], velocities[index]);
+
+	//set new velocity vi = (x*i - xi) / dt
 	velocities[index] = (make_float3(newPos[index]) - make_float3(oldPos[index])) / deltaT;
 
+	//apply vorticity confinement
 	velocities[index] += vorticityForce(newPos, velocities, neighbors, numNeighbors, index) * deltaT;
 
-
+	//apply XSPH viscosity
 	deltaPs[index] = xsphViscosity(newPos, velocities, neighbors, numNeighbors, index);
 
-
+	//update position xi = x*i
 	oldPos[index] = newPos[index];
 }
 
@@ -505,6 +518,7 @@ __global__ void clearDeltaP(float3* deltaPs, float* buffer0) {
 	buffer0[index] = 0;
 }
 
+
 __global__ void updateSpheres(float4* oldPos, float3* spherePos, float3* spheres) {
 	int index = threadIdx.x + (blockIdx.x * blockDim.x);
 	if (index >= sp.numParticles) return;
@@ -516,66 +530,32 @@ __global__ void updateSpheres(float4* oldPos, float3* spherePos, float3* spheres
 		spheres[a].z = spherePos[i].z + oldPos[index].z - sp.bounds.z/2;
 	}
 }
-surface<void, cudaSurfaceType3D> surfaceWrite;
 
-__global__ void waterTexture3d(dim3 texture_dim, int* gridCounters)
-{
-	int x = blockIdx.x*blockDim.x + threadIdx.x;
-	int y = blockIdx.y*blockDim.y + threadIdx.y;
-	int z = blockIdx.z*blockDim.z + threadIdx.z;
-
-
-	if(x >= texture_dim.x || y >= texture_dim.y || z >= texture_dim.z)
-	{
-		return;
-	}
-	int index = x + (texture_dim.x*y) + (texture_dim.x*texture_dim.y*z);
-
-	unsigned char element = 10*gridCounters[index];
-	surf3Dwrite(element, surfaceWrite, x*sizeof(unsigned char), y, z);
-}
-
-void launch_kernel(cudaArray *cuda_image_array, dim3 texture_dim, solver* s)
-{
-	dim3 block_dim(8, 8, 8);
-	dim3 grid_dim(texture_dim.x/block_dim.x, texture_dim.y/block_dim.y, texture_dim.z/block_dim.z);
-
-    cudaError_t err;
-	//Bind voxel array to a writable CUDA surface
-    err = cudaBindSurfaceToArray(surfaceWrite, cuda_image_array);
-	if( err != cudaSuccess) {
-        std::cerr << "ERROR: " << cudaGetErrorString(err) << std::endl;
-        return;
-    }
-
-	waterTexture3d<<< grid_dim, block_dim >>>(texture_dim, s->gridCounters);
-
-	err = cudaGetLastError();
-    if(err != cudaSuccess) {
-        std::cerr << "ERROR: " << cudaGetErrorString(err) << std::endl;
-    }
-}
 
 void updateWater(solver* s, int numIterations) {
-
+	//------------------WATER-----------------
 	for (int i = 0; i < numIterations; i++) {
-
+		//Calculate fluid densities and store in densities
 		calcDensities<<<dims, blockSize>>>(s->newPos, s->neighbors, s->numNeighbors, s->densities);
 
+		//Calculate all lambdas and store in buffer0
 		calcLambda<<<dims, blockSize>>>(s->newPos, s->neighbors, s->numNeighbors, s->densities, s->buffer0);
 
+		//calculate deltaP
 		calcDeltaP<<<dims, blockSize>>>(s->newPos, s->neighbors, s->numNeighbors, s->deltaPs, s->buffer0);
 
+		//update position x*i = x*i + deltaPi
 		applyDeltaP<<<dims, blockSize>>>(s->newPos, s->deltaPs);
 	}
 
+	//Update velocity, apply vorticity confinement, apply xsph viscosity, update position
 	updateVelocities<<<dims, blockSize>>>(s->oldPos, s->newPos, s->velocities, s->neighbors, s->numNeighbors,
 	s->deltaPs);
 
-
+	//Set new velocity
 	updateXSPHVelocities<<<dims, blockSize>>>(s->newPos, s->velocities, s->deltaPs);
 
-
+	updateSpheres<<<dims, blockSize>>>(s->oldPos, s->spherePos, s->spheres);
 
 }
 
@@ -600,10 +580,11 @@ void update(solver* s, solverParams* sp) {
 		sp->gamma = 0.2;
 	}
 	it ++;
-
+	//printf("%d\n", it);
+	//Predict positions and update velocity
 	predictPositions<<<dims, blockSize>>>(s->newPos, s->velocities);
 
-
+	//Update neighbors
 	clearNeighbors<<<dims, blockSize>>>(s->numNeighbors, s->numContacts);
 	clearGrid<<<gridDims, blockSize>>>(s->gridCounters);
 	updateGrid<<<dims, blockSize>>>(s->newPos, s->gridCells, s->gridCounters);
@@ -637,12 +618,22 @@ void update(solver* s, solverParams* sp) {
 
 	applyDeltaP<<<dims, blockSize>>>(s->newPos, s->deltaPs);
 
+
+	/*for (int i = 0; i < sp->numIterations; i++) {
+		clearDeltaP<<<dims, blockSize>>>(s->deltaPs, s->buffer0);
+		//particleCollisions<<<dims, blockSize>>>(s->newPos, s->contacts, s->numContacts, s->deltaPs, s->buffer0);
+		applyDeltaP<<<dims, blockSize>>>(s->newPos, s->deltaPs, s->buffer0, 1);
+	}*/
+
+	//Solve constraints
 	updateWater(s, sp->numIterations);
 }
 
 void setParams(solverParams *tempParams) {
 	dims = int(ceil(tempParams->numParticles / blockSize + 0.5f));
 	dimsCon = int(ceil(tempParams->numParticlesControl / blockSize + 0.5f));
+	diffuseDims = int(ceil(tempParams->numDiffuse / blockSize + 0.5f));
+	clothDims = int(ceil(tempParams->numConstraints / blockSize + 0.5f));
 	gridDims = int(ceil(tempParams->gridSize / blockSize + 0.5f));
 	cudaCheck(cudaMemcpyToSymbol(sp, tempParams, sizeof(solverParams)));
 }
